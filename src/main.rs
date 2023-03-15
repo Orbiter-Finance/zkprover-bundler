@@ -1,5 +1,6 @@
-// cargo install cargo-watch
-// cargo watch -x run
+// dev:
+// 1. cargo install cargo-watch
+// 2. cargo watch -x run
 
 mod open_rpc_server;
 
