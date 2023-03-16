@@ -28,3 +28,5 @@ hyper = "0.14.20"
 console-subscriber = "0.1.8"
 ethers = { version = "2.0.0" }
 dotenv = "0.15.0"
+mongodb = "2.4.0"
+lazy_static = "1.4.0"

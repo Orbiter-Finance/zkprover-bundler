@@ -1,12 +1,20 @@
 use ethers::providers::{Middleware, Provider};
+use ethers::signers::Signer;
 use ethers::types::{
     transaction::eip2718::TypedTransaction, Address, Block, BlockId, Bytes, NameOrAddress, H256,
     U256, U64,
 };
-use ethers::types::{BlockNumber, FeeHistory, TransactionReceipt};
+use ethers::types::{
+    BlockNumber, Eip1559TransactionRequest, FeeHistory, Transaction, TransactionReceipt,
+    TransactionRequest,
+};
 use jsonrpsee::core::{async_trait, RpcResult};
 use jsonrpsee::proc_macros::rpc;
+use mongodb::bson::doc;
 use serde_json::{json, Value};
+
+use crate::model::bundler_list::BundlerList;
+use crate::model::get_database;
 
 fn get_http_provider() -> Provider<ethers::providers::Http> {
     Provider::<ethers::providers::Http>::try_from(std::env::var("NETWORK_RPC_URL").unwrap())
@@ -220,10 +228,19 @@ impl OpenRpcServer for OpenRpcServerImpl {
     }
 
     async fn eth_send_raw_transaction(&self, tx: Bytes) -> RpcResult<H256> {
-        println!("{}", tx);
+        // let value = ethers::utils::serialize(&tx);
+        // println!("value: {:#?}", &tx.to_vec());
+
+        let ttx: Transaction = ethers::utils::rlp::decode(&tx).unwrap();
+
+        println!("ttx: {:#?}", ttx);
 
         let provider = get_http_provider();
         let result = provider.send_raw_transaction(tx).await;
+
+        // let bundler_list = BundlerList { tx: ttx, status: 0 };
+        // let collection = get_database().await.collection("bundler_list");
+        // collection.insert_one(bundler_list, None).await.unwrap();
 
         match result {
             Ok(result) => Ok(result.tx_hash()),

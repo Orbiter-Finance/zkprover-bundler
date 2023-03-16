@@ -1,0 +1,23 @@
+version: '3.8'
+
+networks:
+  zkprover-bundler:
+    driver: bridge
+
+services:
+  # DB
+  db:
+    image: mongo:6.0.5
+    command: mongod --port ${DB_PORT}
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - .data/db:/data/db
+      - .data/log:/var/log/mongodb
+      - .data/config:/etc/mongo
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    networks:
+      - zkprover-bundler

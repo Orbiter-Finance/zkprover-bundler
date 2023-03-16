@@ -2,11 +2,13 @@
 // 1. cargo install cargo-watch
 // 2. cargo watch -x run
 
+mod model;
 mod open_rpc_server;
 
 use dotenv::dotenv;
 use hyper::Method;
 use jsonrpsee::server::{AllowHosts, ServerBuilder};
+use model::get_database;
 use open_rpc_server::{OpenRpcServer, OpenRpcServerImpl};
 use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
@@ -15,6 +17,8 @@ use tower_http::cors::CorsLayer;
 async fn main() -> anyhow::Result<()> {
     // warnning: only dev. The formal environment uses real env
     dotenv().ok();
+
+    get_database().await;
 
     tracing_subscriber::FmtSubscriber::builder()
         // .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
