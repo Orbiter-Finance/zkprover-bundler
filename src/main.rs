@@ -43,6 +43,9 @@ async fn run_server() -> anyhow::Result<SocketAddr> {
         .allow_headers([hyper::header::CONTENT_TYPE]);
     let middleware = tower::ServiceBuilder::new().layer(cors);
 
+    let bundler_rpc_host = std::env::var("BUNDLER_RPC_HOST").unwrap_or(String::from("127.0.0.1"));
+    let bundler_rpc_port = std::env::var("BUNDLER_RPC_PORT").unwrap_or(String::from("4337"));
+
     // The RPC exposes the access control for filtering and the middleware for
     // modifying requests / responses. These features are independent of one another
     // and can also be used separately.
@@ -50,11 +53,13 @@ async fn run_server() -> anyhow::Result<SocketAddr> {
     let server = ServerBuilder::default()
         .set_host_filtering(AllowHosts::Any)
         .set_middleware(middleware)
-        .build("127.0.0.1:8546".parse::<SocketAddr>()?)
+        .build(format!("{}:{}", bundler_rpc_host, bundler_rpc_port).parse::<SocketAddr>()?)
         .await?;
 
     let addr = server.local_addr()?;
     let handle = server.start(OpenRpcServerImpl.into_rpc())?;
+
+    println!("RpcServer started server on {}", addr);
 
     tokio::spawn(handle.stopped()).await?;
 
