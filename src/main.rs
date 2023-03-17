@@ -7,10 +7,12 @@ mod open_rpc_server;
 mod schedule;
 mod service;
 
+use crate::model::get_database;
 use crate::schedule::start_schedules;
 use dotenv::dotenv;
 use hyper::Method;
 use jsonrpsee::server::{AllowHosts, ServerBuilder};
+use mongodb::bson::doc;
 use open_rpc_server::{OpenRpcServer, OpenRpcServerImpl};
 use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
@@ -19,6 +21,12 @@ use tower_http::cors::CorsLayer;
 async fn main() -> anyhow::Result<()> {
     // warning: only dev. The formal environment uses real env
     dotenv().ok();
+
+    // Test db
+    get_database()
+        .await
+        .run_command(doc! {"ping": 1}, None)
+        .await?;
 
     start_schedules().await;
 
