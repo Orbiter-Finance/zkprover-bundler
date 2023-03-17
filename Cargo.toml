@@ -30,3 +30,4 @@ ethers = { version = "2.0.0" }
 dotenv = "0.15.0"
 mongodb = "2.4.0"
 lazy_static = "1.4.0"
+tokio-cron-scheduler = "0.9.4"

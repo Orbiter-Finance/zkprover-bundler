@@ -3,14 +3,12 @@ use ethers::types::{
     transaction::eip2718::TypedTransaction, Address, Block, BlockId, Bytes, NameOrAddress, H256,
     U256, U64,
 };
-use ethers::types::{BlockNumber, FeeHistory, Transaction, TransactionReceipt, TransactionRequest};
+use ethers::types::{BlockNumber, FeeHistory, Transaction, TransactionReceipt};
 use jsonrpsee::core::{async_trait, RpcResult};
 use jsonrpsee::proc_macros::rpc;
-use mongodb::bson::doc;
 use serde_json::{json, Value};
 
-use crate::model::bundler_list::BundlerList;
-use crate::model::get_database;
+use crate::service::pool;
 
 fn get_http_provider() -> Provider<ethers::providers::Http> {
     Provider::<ethers::providers::Http>::try_from(std::env::var("NETWORK_RPC_URL").unwrap())
@@ -224,19 +222,11 @@ impl OpenRpcServer for OpenRpcServerImpl {
     }
 
     async fn eth_send_raw_transaction(&self, raw_tx: Bytes) -> RpcResult<H256> {
-        let mut tx: Transaction = ethers::utils::rlp::decode(&raw_tx).unwrap();
-        tx.hash = tx.hash();
-        tx.from = tx.recover_from().unwrap();
-
-        let provider = get_http_provider();
-        let result = provider.send_raw_transaction(raw_tx).await;
-
-        let bundler_list = BundlerList { tx, status: 0 };
-        let collection = get_database().await.collection("bundler_list");
-        collection.insert_one(bundler_list, None).await.unwrap();
+        let tx: Transaction = ethers::utils::rlp::decode(&raw_tx).unwrap();
+        let result = pool::receive_tx(tx).await;
 
         match result {
-            Ok(result) => Ok(result.tx_hash()),
+            Ok(result) => Ok(result),
             Err(error) => Err(jsonrpsee::core::Error::Custom(error.to_string())),
         }
     }

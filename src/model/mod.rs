@@ -1,4 +1,5 @@
-pub mod bundler_list;
+pub mod pool_batch;
+pub mod pool_tx;
 
 use lazy_static::lazy_static;
 use mongodb::{options::ClientOptions, Client, Database};
@@ -21,12 +22,12 @@ async fn connect_client() -> Client {
     ))
     .await
     .unwrap();
-    client_options.app_name = Some("zkprover-bundler".to_string());
+    client_options.app_name = Some("bundler-client".to_string());
 
     Client::with_options(client_options).unwrap()
 }
 
 pub async fn get_database() -> Database {
     let client = DB_CLIENT.get_or_init(connect_client).await;
-    client.database("zkprover-bundler")
+    client.database("zkprover_bundler")
 }

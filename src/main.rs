@@ -4,21 +4,23 @@
 
 mod model;
 mod open_rpc_server;
+mod schedule;
+mod service;
 
+use crate::schedule::start_schedules;
 use dotenv::dotenv;
 use hyper::Method;
 use jsonrpsee::server::{AllowHosts, ServerBuilder};
-use model::get_database;
 use open_rpc_server::{OpenRpcServer, OpenRpcServerImpl};
 use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // warnning: only dev. The formal environment uses real env
+    // warning: only dev. The formal environment uses real env
     dotenv().ok();
 
-    get_database().await;
+    start_schedules().await;
 
     tracing_subscriber::FmtSubscriber::builder()
         // .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
