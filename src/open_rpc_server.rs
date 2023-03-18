@@ -9,6 +9,7 @@ use jsonrpsee::proc_macros::rpc;
 use serde_json::{json, Value};
 
 use crate::service::pool;
+use crate::service::pool::GetPoolBatchResponse;
 
 fn get_http_provider() -> Provider<ethers::providers::Http> {
     Provider::<ethers::providers::Http>::try_from(std::env::var("NETWORK_RPC_URL").unwrap())
@@ -93,6 +94,16 @@ pub trait OpenRpc {
         &self,
         transaction_hash: H256,
     ) -> RpcResult<Option<TransactionReceipt>>;
+
+    #[method(name = "zkp_getPoolBatch")]
+    async fn zkp_get_pool_batch(&self) -> RpcResult<Option<GetPoolBatchResponse>>;
+
+    // #[method(name = "zkp_sendProofAndPublicInput")]
+    // async fn zkp_send_proof_and_public_input(
+    //     &self,
+    //     batch_hash: H256,
+    //     zk_pub_input: Vec<U256>,
+    // ) -> RpcResult<PoolBatch>;
 }
 
 pub struct OpenRpcServerImpl;
@@ -243,4 +254,20 @@ impl OpenRpcServer for OpenRpcServerImpl {
             Err(error) => Err(jsonrpsee::core::Error::Custom(error.to_string())),
         }
     }
+
+    async fn zkp_get_pool_batch(&self) -> RpcResult<Option<GetPoolBatchResponse>> {
+        let result = pool::get_pool_batch().await;
+
+        match result {
+            Ok(result) => Ok(result),
+            Err(error) => Err(jsonrpsee::core::Error::Custom(error.to_string())),
+        }
+    }
+
+    // async fn zkp_send_proof_and_public_input(
+    //     &self,
+    //     batch_hash: H256,
+    //     zk_pub_input: Vec<U256>,
+    // ) -> RpcResult<PoolBatch> {
+    // }
 }
