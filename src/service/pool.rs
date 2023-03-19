@@ -1,7 +1,7 @@
 use crate::model::pool_batch::PoolBatch;
 use crate::model::pool_tx::PoolTx;
 use ethers::abi::AbiEncode;
-use ethers::types::{Transaction, H256};
+use ethers::types::{Bytes, Transaction, H256, U256, U64};
 use ethers::utils::keccak256;
 use futures::TryStreamExt;
 use mongodb::bson::{doc, to_bson, DateTime};
@@ -68,7 +68,7 @@ pub async fn batch_received_txs() -> anyhow::Result<usize, anyhow::Error> {
             batch_hash: H256::from(batch_hash),
             tx_hash_list: tx_hash_list.clone(),
             zk_proof: None,
-            zk_pub_input: None,
+            zk_pub_inputs: vec![],
             created_at: DateTime::from(SystemTime::now()),
             status: 1,
         };
@@ -120,5 +120,47 @@ pub async fn get_pool_batch() -> anyhow::Result<Option<GetPoolBatchResponse>, an
             }))
         }
         _ => Ok(None),
+    }
+}
+
+pub async fn receive_proof_and_public_input(
+    batch_hash: H256,
+    zk_proof: Bytes,
+    zk_pub_inputs: Vec<U256>,
+) -> anyhow::Result<U64, anyhow::Error> {
+    let co_pool_batch = PoolBatch::get_collection().await;
+    let hash_encode_hex = batch_hash.encode_hex();
+
+    let pool_batch = co_pool_batch
+        .find_one(
+            doc! {"batch_hash": &hash_encode_hex, "status": {"$in": [1, 2]}},
+            None,
+        )
+        .await?;
+
+    match pool_batch {
+        Some(pb) => {
+            co_pool_batch
+                .update_one(
+                    doc! {"batch_hash": &hash_encode_hex},
+                    doc! {"$set": {"zk_proof": zk_proof.encode_hex(), "zk_pub_inputs": to_bson(&zk_pub_inputs).unwrap(), "status": 3}},
+                    None,
+                )
+                .await?;
+
+            // Todo sendTx
+            let mut status = 4;
+
+            co_pool_batch
+                .update_one(
+                    doc! {"batch_hash": &hash_encode_hex},
+                    doc! {"$set": {"status": status}},
+                    None,
+                )
+                .await?;
+
+            Ok(U64::from(1))
+        }
+        _ => Ok(U64::from(0)),
     }
 }

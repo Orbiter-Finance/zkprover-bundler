@@ -98,12 +98,13 @@ pub trait OpenRpc {
     #[method(name = "zkp_getPoolBatch")]
     async fn zkp_get_pool_batch(&self) -> RpcResult<Option<GetPoolBatchResponse>>;
 
-    // #[method(name = "zkp_sendProofAndPublicInput")]
-    // async fn zkp_send_proof_and_public_input(
-    //     &self,
-    //     batch_hash: H256,
-    //     zk_pub_input: Vec<U256>,
-    // ) -> RpcResult<PoolBatch>;
+    #[method(name = "zkp_sendProofAndPublicInput")]
+    async fn zkp_send_proof_and_public_inputs(
+        &self,
+        batch_hash: H256,
+        zk_proof: Bytes,
+        zk_pub_inputs: Vec<U256>,
+    ) -> RpcResult<U64>;
 }
 
 pub struct OpenRpcServerImpl;
@@ -264,10 +265,18 @@ impl OpenRpcServer for OpenRpcServerImpl {
         }
     }
 
-    // async fn zkp_send_proof_and_public_input(
-    //     &self,
-    //     batch_hash: H256,
-    //     zk_pub_input: Vec<U256>,
-    // ) -> RpcResult<PoolBatch> {
-    // }
+    async fn zkp_send_proof_and_public_inputs(
+        &self,
+        batch_hash: H256,
+        zk_proof: Bytes,
+        zk_pub_inputs: Vec<U256>,
+    ) -> RpcResult<U64> {
+        let result =
+            pool::receive_proof_and_public_input(batch_hash, zk_proof, zk_pub_inputs).await;
+
+        match result {
+            Ok(result) => Ok(result),
+            Err(error) => Err(jsonrpsee::core::Error::Custom(error.to_string())),
+        }
+    }
 }
