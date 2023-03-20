@@ -1,5 +1,6 @@
 use crate::model::pool_batch::PoolBatch;
 use crate::model::pool_tx::PoolTx;
+use crate::schedule::do_batch_received_txs;
 use ethers::abi::AbiEncode;
 use ethers::types::{Bytes, Transaction, H256, U256, U64};
 use ethers::utils::keccak256;
@@ -30,17 +31,21 @@ pub async fn receive_tx(mut tx: Transaction) -> anyhow::Result<H256, anyhow::Err
         collection.insert_one(pool_tx, None).await?;
     }
 
+    tokio::spawn(do_batch_received_txs());
+
     Ok(tx.hash)
 }
 
 pub async fn batch_received_txs() -> anyhow::Result<usize, anyhow::Error> {
-    // const BATCH_TX_TOTAL: usize = 128;
-    const BATCH_TX_TOTAL: usize = 1; // For dev
+    let bundler_batch_tx_total: usize = std::env::var("BUNDLER_BATCH_TX_TOTAL")
+        .unwrap()
+        .parse()
+        .unwrap_or(128);
 
     let co_pool_tx = PoolTx::get_collection().await;
     let find_options = FindOptions::builder()
         .sort(doc! {"created_at": 1})
-        .limit(BATCH_TX_TOTAL as i64)
+        .limit(bundler_batch_tx_total as i64)
         .build();
     let mut pt_cursor = co_pool_tx.find(doc! {"status": 1}, find_options).await?;
 
@@ -49,8 +54,8 @@ pub async fn batch_received_txs() -> anyhow::Result<usize, anyhow::Error> {
         tx_hash_list.push(tx.tx_hash);
     }
 
-    // When received tx length >= BATCH_TX_TOTAL, new a batch
-    if tx_hash_list.len() >= BATCH_TX_TOTAL {
+    // When received tx length >= bundler_batch_tx_total, new a batch
+    if tx_hash_list.len() >= bundler_batch_tx_total {
         // Lock txs
         co_pool_tx
             .update_many(
@@ -79,6 +84,7 @@ pub async fn batch_received_txs() -> anyhow::Result<usize, anyhow::Error> {
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct GetPoolBatchResponse {
     batch_hash: H256,
     tx_list: Vec<Transaction>,
@@ -133,7 +139,7 @@ pub async fn receive_proof_and_public_input(
 
     let pool_batch = co_pool_batch
         .find_one(
-            doc! {"batch_hash": &hash_encode_hex, "status": {"$in": [1, 2]}},
+            doc! {"batch_hash": hash_encode_hex.as_str(), "status": {"$in": [1, 2]}},
             None,
         )
         .await?;
@@ -142,7 +148,7 @@ pub async fn receive_proof_and_public_input(
         Some(pb) => {
             co_pool_batch
                 .update_one(
-                    doc! {"batch_hash": &hash_encode_hex},
+                    doc! {"batch_hash": hash_encode_hex.as_str()},
                     doc! {"$set": {"zk_proof": zk_proof.encode_hex(), "zk_pub_inputs": to_bson(&zk_pub_inputs).unwrap(), "status": 3}},
                     None,
                 )

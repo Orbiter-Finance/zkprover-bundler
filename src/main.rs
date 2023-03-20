@@ -10,11 +10,13 @@ mod service;
 use crate::model::get_database;
 use crate::schedule::start_schedules;
 use dotenv::dotenv;
+use ethers::contract::{abigen, Abigen, Contract};
 use hyper::Method;
 use jsonrpsee::server::{AllowHosts, ServerBuilder};
 use mongodb::bson::doc;
 use open_rpc_server::{OpenRpcServer, OpenRpcServerImpl};
 use std::net::SocketAddr;
+use tokio::fs::read_to_string;
 use tower_http::cors::CorsLayer;
 
 #[tokio::main]
@@ -22,22 +24,40 @@ async fn main() -> anyhow::Result<()> {
     // warning: only dev. The formal environment uses real env
     dotenv().ok();
 
+    println!(
+        "{:#?}",
+        format!("{}/src/config/contracts/ERC20.json", module_path!())
+    );
+    let erc20 = Abigen::from_file(format!(
+        "{}/src/config/contracts/ERC20.json",
+        module_path!()
+    ))
+    .unwrap();
+
+    // Contract::from
+
+    // let s = read_to_string(file_path).await.unwrap();
+    // let j = serde_json::from_str(&s).unwrap();
+    println!("{:#?}", erc20);
+
+    return Ok(());
+
     // Test db
-    get_database()
-        .await
-        .run_command(doc! {"ping": 1}, None)
-        .await?;
-
-    start_schedules().await;
-
-    tracing_subscriber::FmtSubscriber::builder()
-        // .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-        .try_init()
-        .expect("setting default subscriber failed");
-
-    run_server().await?;
-
-    Ok(())
+    // get_database()
+    //     .await
+    //     .run_command(doc! {"ping": 1}, None)
+    //     .await?;
+    //
+    // start_schedules().await;
+    //
+    // tracing_subscriber::FmtSubscriber::builder()
+    //     // .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+    //     .try_init()
+    //     .expect("setting default subscriber failed");
+    //
+    // run_server().await?;
+    //
+    // Ok(())
 }
 
 async fn run_server() -> anyhow::Result<SocketAddr> {
