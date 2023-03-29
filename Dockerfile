@@ -3,9 +3,7 @@
 ARG ALPINE_VERSION=3.17
 FROM alpine:${ALPINE_VERSION}
 
-RUN apk add --no-cache \
-        ca-certificates \
-        gcc
+RUN apk add --no-cache ca-certificates g++ make
 
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
