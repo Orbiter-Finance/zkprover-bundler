@@ -5,6 +5,21 @@ networks:
     driver: bridge
 
 services:
+  bundler:
+    build: ./
+    command: ./target/release/zkprover-bundler
+    environment:
+      DB_HOST: db
+    env_file:
+      - .env
+    # volumes:
+    # - './backend/logs:/app/logs'
+    ports:
+      - '${BUNDLER_RPC_PORT}:${BUNDLER_RPC_PORT}'
+    restart: always
+    networks:
+      - zkprover-bundler
+
   # DB
   db:
     image: mongo:6.0.5
