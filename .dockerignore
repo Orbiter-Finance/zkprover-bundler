@@ -5,3 +5,9 @@ docker-compose.yml
 .idea
 .vscode
 target/
+
+# nginx
+nginx/
+nginx.default.conf
+nginx.domain.key
+nginx.domain.crt

@@ -36,3 +36,17 @@ services:
       - ${DB_PORT}:${DB_PORT}
     networks:
       - zkprover-bundler
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - './nginx.default.conf:/etc/nginx/conf.d/default.conf'
+      - './nginx/log:/var/log/nginx'
+      - './nginx/nginx.domain.crt:/etc/nginx/certs/domain.crt'
+      - './nginx/nginx.domain.key:/etc/nginx/certs/domain.key'
+    ports:
+      - '80:80'
+      - '443:443'
+    restart: always
+    networks:
+      - zkprover-bundler

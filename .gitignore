@@ -1,5 +1,10 @@
-.idea
+.idea/
+.vscode/
 
 target/
-.env
 .data/
+.env
+
+nginx/
+nginx.domain.key
+nginx.domain.crt
