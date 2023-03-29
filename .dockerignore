@@ -5,6 +5,7 @@ docker-compose.yml
 .idea
 .vscode
 target/
+rustfmt.toml
 
 # nginx
 nginx/
