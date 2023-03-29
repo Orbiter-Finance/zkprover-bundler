@@ -27,4 +27,4 @@ RUN set -eux; \
 WORKDIR /app
 COPY . .
 
-RUN cargo build --release -q
+RUN cargo build --release --verbose --jobs=8
