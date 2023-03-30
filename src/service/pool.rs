@@ -38,9 +38,9 @@ pub async fn receive_tx(mut tx: Transaction) -> anyhow::Result<H256, anyhow::Err
 
 pub async fn batch_received_txs() -> anyhow::Result<usize, anyhow::Error> {
     let bundler_batch_tx_total: usize = std::env::var("BUNDLER_BATCH_TX_TOTAL")
-        .unwrap()
+        .unwrap_or(String::from("128"))
         .parse()
-        .unwrap_or(128);
+        .unwrap();
 
     let co_pool_tx = PoolTx::get_collection().await;
     let find_options = FindOptions::builder()
