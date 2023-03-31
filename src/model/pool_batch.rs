@@ -10,6 +10,7 @@ pub struct PoolBatch {
     pub tx_hash_list: Vec<H256>,
     pub zk_proof: Option<Bytes>,
     pub zk_pub_inputs: Vec<U256>,
+    pub send_tx_hash: H256,
     pub created_at: DateTime,
     pub status: u8, // 0: invalid, 1: received, 2: pending, 3: submitting, 4: succeed, 5: failed
 }

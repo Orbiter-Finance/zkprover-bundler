@@ -207,16 +207,18 @@ impl OpenRpcServer for OpenRpcServerImpl {
     }
 
     async fn eth_estimate_gas(&self, tx: Value, block: Option<BlockId>) -> RpcResult<U256> {
+        Ok(U256::from(21000))
+
         // Data cleaning
-        let ttx = json_to_typed_transaction(tx)?;
-
-        let provider = get_http_provider();
-        let result = provider.estimate_gas(&ttx, block).await;
-
-        match result {
-            Ok(result) => Ok(result),
-            Err(error) => Err(jsonrpsee::core::Error::Custom(error.to_string())),
-        }
+        // let ttx = json_to_typed_transaction(tx)?;
+        //
+        // let provider = get_http_provider();
+        // let result = provider.estimate_gas(&ttx, block).await;
+        //
+        // match result {
+        //     Ok(result) => Ok(result),
+        //     Err(error) => Err(jsonrpsee::core::Error::Custom(error.to_string())),
+        // }
     }
 
     async fn eth_get_transaction_count(

@@ -2,22 +2,23 @@
 // 1. cargo install cargo-watch
 // 2. cargo watch -x run
 
+use std::net::SocketAddr;
+
+use dotenv::dotenv;
+use hyper::Method;
+use jsonrpsee::server::{AllowHosts, ServerBuilder};
+use mongodb::bson::doc;
+use tower_http::cors::CorsLayer;
+
+use open_rpc_server::{OpenRpcServer, OpenRpcServerImpl};
+
+use crate::model::get_database;
+use crate::schedule::start_schedules;
+
 mod model;
 mod open_rpc_server;
 mod schedule;
 mod service;
-
-use crate::model::get_database;
-use crate::schedule::start_schedules;
-use dotenv::dotenv;
-use ethers::contract::{abigen, Abigen, Contract};
-use hyper::Method;
-use jsonrpsee::server::{AllowHosts, ServerBuilder};
-use mongodb::bson::doc;
-use open_rpc_server::{OpenRpcServer, OpenRpcServerImpl};
-use std::net::SocketAddr;
-use tokio::fs::read_to_string;
-use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
