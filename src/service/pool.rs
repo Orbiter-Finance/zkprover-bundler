@@ -27,7 +27,7 @@ async fn handle_ops(pb: PoolBatch) -> anyhow::Result<H256, anyhow::Error> {
 
     println!("Do handle_ops: {}", pb.batch_hash.encode_hex());
 
-    let mut ops: Vec<entry_point_contract::UserOperation> = vec![];
+    let mut ops: Vec<UserOperation> = vec![];
     for h in pb.tx_hash_list.iter() {
         let one = co_pool_tx
             .find_one(doc! {"tx_hash": h.encode_hex()}, None)
@@ -67,7 +67,7 @@ async fn handle_ops(pb: PoolBatch) -> anyhow::Result<H256, anyhow::Error> {
         let tuple_arr = tokens[0].clone().into_array().unwrap();
         for tuple in tuple_arr.iter() {
             let t = tuple.clone().into_tuple().unwrap();
-            ops.push(entry_point_contract::UserOperation {
+            ops.push(UserOperation {
                 sender: t[0].clone().into_address().unwrap(),
                 nonce: t[1].clone().into_uint().unwrap(),
                 init_code: Bytes::from(t[2].clone().into_bytes().unwrap()),
@@ -108,8 +108,8 @@ async fn handle_ops(pb: PoolBatch) -> anyhow::Result<H256, anyhow::Error> {
     println!("pub_signals:{:#?}", pub_signals.clone());
 
     let transaction_receipt = entry_point
-        .handle_ops(ops, proof, pub_signals, miner_address)
-        .gas(20000000)
+        .handle_ops(ops, proof, [pub_signals[0]], miner_address)
+        .gas(2000000)
         .send()
         .await?
         .await?;
