@@ -108,7 +108,7 @@ async fn handle_ops(pb: PoolBatch) -> anyhow::Result<H256, anyhow::Error> {
     println!("pub_signals:{:#?}", pub_signals.clone());
 
     let transaction_receipt = entry_point
-        .handle_ops(ops, proof, pub_signals, miner_address)
+        .handle_ops(ops, proof, [pub_signals[0]], miner_address)
         .gas(2000000)
         .send()
         .await?
